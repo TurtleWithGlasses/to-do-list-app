@@ -15,7 +15,7 @@ class TodoListApp:
 
         # Frames
         self.left_frame = tk.Frame(root, width=(window_width * 0.75), height=window_height)
-        self.left_frame.pack_propagate(False)  # Prevent frame from resizing with its content
+        self.left_frame.pack_propagate(False)
         self.left_frame.pack(side=tk.LEFT, padx=10, pady=10)
 
         self.right_frame = tk.Frame(root)
@@ -23,21 +23,22 @@ class TodoListApp:
 
         # Treeview with fixed size
         style = ttk.Style()
-        # increase row height to make checkboxes bigger
-        style.configure("Treeview", rowheight=30) 
+        style.configure("Treeview", rowheight=30)
 
-        self.tree = ttk.Treeview(self.left_frame, columns=("Task", "Status"), show="headings", height=46)
+        self.tree = ttk.Treeview(self.left_frame, columns=("Task", "Data Status", "Work Status"), show="headings", height=46)
         self.tree.heading("Task", text="Task")
-        self.tree.heading("Status", text="Finished")
-        self.tree.column("Task", width=int(window_width * 0.55))  # Fixed width for Task column
-        self.tree.column("Status", width=120, anchor=tk.CENTER)  # Fixed width for Status column
-        self.tree.pack(expand=False, fill=tk.NONE)  # Prevent resizing
+        self.tree.heading("Data Status", text="Data Ready")
+        self.tree.heading("Work Status", text="Finished")
+        self.tree.column("Task", width=int(window_width * 0.55))
+        self.tree.column("Data Status", width=120, anchor=tk.CENTER)
+        self.tree.column("Work Status", width=120, anchor=tk.CENTER)
+        self.tree.pack(expand=False, fill=tk.NONE)
 
         # Entry in the right frame
         self.entry = tk.Entry(self.right_frame, width=30)
         self.entry.pack(pady=5)
 
-        #  add & remove buttons side by side
+        # Add & Remove buttons side by side
         self.button_frame1 = tk.Frame(self.right_frame)
         self.button_frame1.pack(pady=5)
 
@@ -57,8 +58,7 @@ class TodoListApp:
         self.down_button = tk.Button(self.button_frame2, text="Down", command=lambda: self.move_item(1), width=12)
         self.down_button.pack(side=tk.RIGHT)
 
-        # reset and edit buttons
-
+        # Reset and Edit buttons
         self.button_frame3 = tk.Frame(self.right_frame)
         self.button_frame3.pack(pady=5)
         
@@ -74,7 +74,7 @@ class TodoListApp:
     def add_item(self):
         item_text = self.entry.get()
         if item_text:
-            self.tree.insert("", tk.END, values=(item_text, "☐"))
+            self.tree.insert("", tk.END, values=(item_text, "☐", "☐"))
             self.entry.delete(0, tk.END)
             self.save_list()
         else:
@@ -104,15 +104,22 @@ class TodoListApp:
 
     def reset_list(self):
         for item in self.tree.get_children():
-            self.tree.item(item, values=(self.tree.item(item, 'values')[0], "☐"))
+            self.tree.item(item, values=(self.tree.item(item, 'values')[0], "☐", "☐"))
         self.save_list()
 
     def toggle_status(self, event):
         item = self.tree.identify_row(event.y)
-        if item:
-            current_status = self.tree.item(item, 'values')[1]
-            new_status = "☑" if current_status == "☐" else "☐"
-            self.tree.item(item, values=(self.tree.item(item, 'values')[0], new_status))
+        column = self.tree.identify_column(event.x)
+
+        if item and column:
+            if column == "#2":  # Data Status column
+                current_status = self.tree.item(item, 'values')[1]
+                new_status = "☑" if current_status == "☐" else "☐"
+                self.tree.item(item, values=(self.tree.item(item, 'values')[0], new_status, self.tree.item(item, 'values')[2]))
+            elif column == "#3":  # Work Status column
+                current_status = self.tree.item(item, 'values')[2]
+                new_status = "☑" if current_status == "☐" else "☐"
+                self.tree.item(item, values=(self.tree.item(item, 'values')[0], self.tree.item(item, 'values')[1], new_status))
             self.save_list()
 
     def edit_item(self):
@@ -121,7 +128,7 @@ class TodoListApp:
             current_text = self.tree.item(selected_item, "values")[0]
             new_text = self.entry.get()
             if new_text:
-                self.tree.item(selected_item, values=(new_text, "☐"))  # Corrected method call
+                self.tree.item(selected_item, values=(new_text, self.tree.item(selected_item, 'values')[1], self.tree.item(selected_item, 'values')[2]))
                 self.entry.delete(0, tk.END)
                 self.save_list()
             else:
@@ -130,7 +137,7 @@ class TodoListApp:
             messagebox.showwarning("Warning", "You must select a task to edit.")
 
     def save_list(self):
-        tasks = [(self.tree.item(item, 'values')[0], self.tree.item(item, 'values')[1]) for item in self.tree.get_children()]
+        tasks = [(self.tree.item(item, 'values')[0], self.tree.item(item, 'values')[1], self.tree.item(item, 'values')[2]) for item in self.tree.get_children()]
         with open("todo_list.json", "w") as f:
             json.dump(tasks, f)
 
@@ -138,8 +145,10 @@ class TodoListApp:
         try:
             with open("todo_list.json", "r") as f:
                 tasks = json.load(f)
-                for task, status in tasks:
-                    self.tree.insert("", tk.END, values=(task, status))
+                for task in tasks:
+                    if len(task) == 2:
+                        task.append("☐")  # Default value for Work Status
+                    self.tree.insert("", tk.END, values=task)
         except FileNotFoundError:
             pass
 
