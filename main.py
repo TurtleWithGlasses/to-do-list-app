@@ -7,19 +7,18 @@ class TodoListApp:
         self.root = root
         self.root.title("To-Do List App")
         
-        screen_width = root.winfo_screenwidth()
-        screen_height = root.winfo_screenheight()
-        window_width = int(screen_width * 0.6)
-        window_height = int(screen_height * 0.8)
+        window_width = 800
+        window_height = 900
         self.root.geometry(f"{window_width}x{window_height}")
+        self.root.resizable(False, False)
 
         # Frames
-        self.left_frame = tk.Frame(root, width=(window_width * 0.75), height=window_height)
+        self.left_frame = tk.Frame(root, width=(500), height=window_height)
         self.left_frame.pack_propagate(False)
         self.left_frame.pack(side=tk.LEFT, padx=10, pady=10)
 
         self.right_frame = tk.Frame(root)
-        self.right_frame.pack(side=tk.RIGHT, padx=10, pady=10)
+        self.right_frame.pack(side=tk.RIGHT, padx=10, pady=10, fill=tk.Y, anchor="w")
 
         # Treeview with fixed size
         style = ttk.Style()
@@ -29,7 +28,7 @@ class TodoListApp:
         self.tree.heading("Task", text="Task")
         self.tree.heading("Data Status", text="Data Ready")
         self.tree.heading("Work Status", text="Finished")
-        self.tree.column("Task", width=int(window_width * 0.55))
+        self.tree.column("Task", width=250)
         self.tree.column("Data Status", width=120, anchor=tk.CENTER)
         self.tree.column("Work Status", width=120, anchor=tk.CENTER)
         self.tree.pack(expand=False, fill=tk.NONE)
@@ -40,7 +39,7 @@ class TodoListApp:
 
         # Add & Remove buttons side by side
         self.button_frame1 = tk.Frame(self.right_frame)
-        self.button_frame1.pack(pady=5)
+        self.button_frame1.pack(pady=5, fill=tk.Y, anchor="w")
 
         self.add_button = tk.Button(self.button_frame1, text="Add", command=self.add_item, width=12)
         self.add_button.pack(side=tk.LEFT)
@@ -50,7 +49,7 @@ class TodoListApp:
 
         # Up & Down buttons side by side
         self.button_frame2 = tk.Frame(self.right_frame)
-        self.button_frame2.pack(pady=5)
+        self.button_frame2.pack(pady=5, fill=tk.Y, anchor="w")
         
         self.up_button = tk.Button(self.button_frame2, text="Up", command=lambda: self.move_item(-1), width=12)
         self.up_button.pack(side=tk.LEFT)
@@ -60,7 +59,7 @@ class TodoListApp:
 
         # Reset and Edit buttons
         self.button_frame3 = tk.Frame(self.right_frame)
-        self.button_frame3.pack(pady=5)
+        self.button_frame3.pack(pady=5, fill=tk.Y, anchor="w")
         
         self.reset_button = tk.Button(self.button_frame3, text="Reset", command=self.reset_list, width=12)
         self.reset_button.pack(side=tk.RIGHT)
